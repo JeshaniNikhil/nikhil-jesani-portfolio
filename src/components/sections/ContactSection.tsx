@@ -6,7 +6,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Mail, ExternalLink, Code2, MapPin, Download, Send, ArrowRight, CheckCircle } from "lucide-react";
 
 const links = [
-  { icon: Mail,         label: "Email",    value: "nikhiljeshani9@gmail.com",       href: "mailto:nikhiljesani9@gmail.com",        color: "#00f5ff" },
+  { icon: Mail,         label: "Email",    value: "nikhiljeshani9@gmail.com",       href: "mailto:nikhiljeshani9@gmail.com",        color: "#00f5ff" },
   { icon: ExternalLink, label: "LinkedIn", value: "linkedin.com/in/nikhil-jeshani/", href: "https://www.linkedin.com/in/nikhil-jeshani/", color: "#0a66c2" },
   { icon: Code2,        label: "GitHub",   value: "https://github.com/JeshaniNikhil/",      href: "https://github.com/JeshaniNikhil/",      color: "#e2e8f0" },
   { icon: MapPin,       label: "Location", value: "Rajkot, Gujarat, India",       href: "#",                                    color: "#10b981" },
