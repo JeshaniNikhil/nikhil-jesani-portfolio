@@ -42,7 +42,7 @@ const publicProjects: Project[] = [
     architecture: "Autonomous security monitoring with AI-driven triage, real-time threat classification, and intelligent reporting dashboard. Built with LangChain + Supabase backend.",
     tools: ["Python", "LangChain", "OpenAI", "Supabase", "React", "Vercel"],
     impact: "90% reduction in alert triage time. Automated threat classification with real-time dashboards.",
-    images: ["/images/security tool project 1.png", "/images/security project 2.png"],
+    images: ["/images/security-tool-project-1.png", "/images/security-project-2.png"],
     nodes: [
       { label: "Monitor",   color: "#10b981" },
       { label: "Detect",    color: "#ef4444" },
@@ -64,7 +64,7 @@ const publicProjects: Project[] = [
     architecture: "AI-powered traffic management with real-time conflict detection, dynamic rerouting, predictive scheduling and live station dashboard.",
     tools: ["Python", "FastAPI", "React", "TensorFlow", "PostgreSQL", "Vercel"],
     impact: "40% reduction in scheduling conflicts. Real-time AI optimization with live track visualization.",
-    images: ["/images/train traffic project 1.png", "/images/train traffic project 2.png"],
+    images: ["/images/train-traffic-project-1.png", "/images/train-traffic-project-2.png"],
     nodes: [
       { label: "Input",    color: "#f97316" },
       { label: "Schedule", color: "#3b82f6" },

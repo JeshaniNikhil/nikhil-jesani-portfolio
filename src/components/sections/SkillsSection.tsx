@@ -24,7 +24,7 @@ const skills: Skill[] = [
   { name: "RAG Pipelines",category: "AI & LLMs",       proficiency: 89, color: "#f59e0b", emoji: "🔍" },
   { name: "Prompt Eng.",  category: "AI & LLMs",       proficiency: 96, color: "#ec4899", emoji: "💬" },
   { name: "Vector DBs",   category: "AI & LLMs",       proficiency: 83, color: "#14b8a6", emoji: "📦" },
-  { name: "HuggingFace",  category: "AI & LLMs",       proficiency: 78, color: "#f59e0b", img: "/images/hugging face.png" },
+  { name: "HuggingFace",  category: "AI & LLMs",       proficiency: 78, color: "#f59e0b", img: "/images/hugging-face.png" },
   { name: "Fine-tuning",  category: "AI & LLMs",       proficiency: 75, color: "#a855f7", emoji: "⚙️" },
   /* Automation */
   { name: "n8n",          category: "Automation",      proficiency: 96, color: "#ea4b71", img: "/images/n8n.png" },

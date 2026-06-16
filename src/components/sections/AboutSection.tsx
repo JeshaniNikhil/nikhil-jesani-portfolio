@@ -58,7 +58,7 @@ export function AboutSection() {
             <div className="glass rounded-2xl p-6 text-center min-w-0">
               <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-white/10 mx-auto mb-4 flex-shrink-0">
                 <Image
-                  src="/images/profile photo.jpeg"
+                  src="/images/profile-photo.jpeg"
                   alt="Nikhil Jesani"
                   fill
                   className="object-cover object-top"

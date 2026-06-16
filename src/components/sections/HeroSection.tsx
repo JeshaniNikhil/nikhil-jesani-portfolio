@@ -45,7 +45,7 @@ const techLogos = [
   { name: "PHP",         img: "/images/php.png" },
   { name: "HubSpot",     img: "/images/hubspot.png" },
   { name: "VAPI",        img: "/images/vapi.png" },
-  { name: "HuggingFace", img: "/images/hugging face.png" },
+  { name: "HuggingFace", img: "/images/hugging-face.png" },
 ];
 
 const integrations = ["Zapier","Slack","GHL","OpenAI","Claude","Gemini","Twilio","Supabase","Pinecone","Firebase"];
@@ -240,7 +240,7 @@ export function HeroSection() {
               {/* Photo */}
               <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/10 shadow-2xl shadow-cyan-500/10">
                 <Image
-                  src="/images/profile photo.jpeg"
+                  src="/images/profile-photo.jpeg"
                   alt="Nikhil Jesani — AI Automation Engineer"
                   fill
                   sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
