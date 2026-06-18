@@ -273,9 +273,10 @@ function DataStreams() {
 
   return (
     <>
-      {geos.map((geo, i) => (
-        <line key={i} geometry={geo} material={mats[i]} />
-      ))}
+      {geos.map((geo, i) => {
+        // @ts-expect-error - React 19 type conflict with SVG line vs Three.js line
+        return <line key={i} geometry={geo} material={mats[i]} />;
+      })}
     </>
   );
 }
