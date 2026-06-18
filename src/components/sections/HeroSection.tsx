@@ -115,7 +115,7 @@ export function HeroSection() {
   }, [charIdx, isDeleting, typingIdx]);
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-x-hidden min-h-screen flex flex-col justify-start lg:justify-center pt-32 lg:pt-0">
       <NeuralNetworkBg />
       <div className="absolute inset-0 grid-pattern opacity-[0.18] pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none">
@@ -123,27 +123,27 @@ export function HeroSection() {
         <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/[0.05] blur-[150px]" />
       </div>
 
-      <div className="relative z-10 section-container pt-28 pb-20 md:pt-32 md:pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+      <div className="relative z-10 section-container pt-48 pb-24 md:pt-44 md:pb-28 lg:pt-36 lg:pb-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-16 lg:mt-0">
 
           {/* ── LEFT column ── */}
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left order-2 lg:order-1 gap-5">
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left order-2 lg:order-1 gap-6">
 
             {/* Status badge */}
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass self-center lg:self-start"
+              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full glass self-center lg:self-start"
             >
               <span className="status-dot" />
-              {/* <span className="text-xs text-slate-300 font-medium tracking-wide whitespace-nowrap">
+              <span className="text-xs text-slate-300 font-medium tracking-wide whitespace-nowrap">
                 Available for AI Automation Projects
-              </span> */}
+              </span>
             </motion.div>
 
             {/* Name */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-              className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.05]"
+              className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05]"
             >
               <span className="text-white">Nikhil</span>
               <br />
@@ -191,7 +191,7 @@ export function HeroSection() {
             {/* ── CTA Buttons ── */}
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4 }}
-              className="flex flex-wrap justify-center lg:justify-start gap-3"
+              className="flex flex-wrap justify-center lg:justify-start gap-3 pt-1"
             >
               <button
                 onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })}
@@ -206,7 +206,7 @@ export function HeroSection() {
                 <Cpu className="w-4 h-4 text-purple-400 flex-shrink-0" />
                 <span>AI Journey</span>
               </button>
-              <a href="/resume.pdf" download className="btn-ghost">
+              <a href="/resume/Nikhil_Jesani_AI_Automation.pdf" download className="btn-ghost">
                 <Download className="w-4 h-4 text-green-400 flex-shrink-0" />
                 <span>Resume</span>
               </a>
@@ -215,7 +215,7 @@ export function HeroSection() {
             {/* ── Stats ── */}
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.7 }}
-              className="grid grid-cols-4 gap-3 w-full"
+              className="grid grid-cols-4 gap-3 w-full pt-2"
             >
               {stats.map((s, i) => (
                 <div key={i} className="glass rounded-xl p-4 text-center">
@@ -230,20 +230,25 @@ export function HeroSection() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.8, type: "spring", stiffness: 90 }}
-            className="order-1 lg:order-2 flex justify-center"
+            className="order-1 lg:order-2 flex justify-center mt-12 mb-8 lg:mt-0 lg:mb-0"
           >
-            <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96">
+            <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-[420px] lg:h-[420px]">
               {/* Glow */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-20 animate-pulse-glow" />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 blur-3xl opacity-25 animate-pulse-glow" />
               {/* Rotating ring */}
-              <div className="absolute inset-[-8px] rounded-full border border-dashed border-cyan-500/20 animate-rotate" />
+              <div className="absolute inset-[-12px] rounded-full border border-dashed border-cyan-500/25 animate-rotate" />
+              {/* Second ring */}
+              <div className="absolute inset-[-24px] rounded-full border border-dashed border-purple-500/15 animate-rotate" style={{ animationDuration: "35s", animationDirection: "reverse" }} />
               {/* Photo */}
-              <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/10 shadow-2xl shadow-cyan-500/10">
+              <div 
+                className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/10 shadow-2xl shadow-cyan-500/20"
+                style={{ margin: 'initial' }}
+              >
                 <Image
                   src="/images/profile-photo.jpeg"
                   alt="Nikhil Jesani — AI Automation Engineer"
                   fill
-                  sizes="(max-width: 640px) 224px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 384px"
+                  sizes="(max-width: 640px) 240px, (max-width: 768px) 288px, (max-width: 1024px) 320px, 420px"
                   className="object-cover object-top"
                   priority
                 />
@@ -251,16 +256,16 @@ export function HeroSection() {
 
               {/* Floating badges — anchored inside the photo wrapper */}
               <motion.div
-                animate={{ y: [0, -5, 0] }}
+                animate={{ y: [0, -6, 0] }}
                 transition={{ repeat: Infinity, duration: 3.2, ease: "easeInOut" }}
-                className="absolute top-4 right-0 translate-x-1/4 glass rounded-xl px-2.5 py-1 text-[10px] font-mono text-cyan-400 border border-cyan-500/25 shadow-lg whitespace-nowrap z-10"
+                className="absolute top-6 right-0 translate-x-1/3 glass rounded-xl px-3 py-1.5 text-[11px] font-mono text-cyan-400 border border-cyan-500/25 shadow-lg whitespace-nowrap z-10"
               >
                 🤖 AI Builder
               </motion.div>
               <motion.div
-                animate={{ y: [0, 5, 0] }}
+                animate={{ y: [0, 6, 0] }}
                 transition={{ repeat: Infinity, duration: 3.8, ease: "easeInOut" }}
-                className="absolute bottom-4 left-0 -translate-x-1/4 glass rounded-xl px-2.5 py-1 text-[10px] font-mono text-purple-400 border border-purple-500/25 shadow-lg whitespace-nowrap z-10"
+                className="absolute bottom-6 left-0 -translate-x-1/3 glass rounded-xl px-3 py-1.5 text-[11px] font-mono text-purple-400 border border-purple-500/25 shadow-lg whitespace-nowrap z-10"
               >
                 ⚡ 120+ Agents
               </motion.div>
@@ -268,9 +273,9 @@ export function HeroSection() {
               <motion.div
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
-                className="absolute -bottom-4 right-8 w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg z-10"
+                className="absolute -bottom-4 right-10 w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg z-10"
               >
-                <Sparkles className="w-4 h-4 text-white" />
+                <Sparkles className="w-5 h-5 text-white" />
               </motion.div>
             </div>
           </motion.div>
@@ -281,25 +286,54 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.0 }}
           className="mt-16 pt-10 border-t border-white/[0.06]"
         >
-          <p className="text-center text-[10px] text-slate-500 font-mono uppercase tracking-[0.18em] mb-6">
+          <p className="text-center text-[10px] text-slate-500 font-mono uppercase tracking-[0.18em] mb-8">
             Built with &amp; Integrated
           </p>
 
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-5">
+          {/* Tech logo cards — all uniform size */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
             {techLogos.map((logo) => (
               <motion.div
                 key={logo.name}
-                whileHover={{ scale: 1.12, y: -3 }}
-                className="flex flex-col items-center gap-1.5 group cursor-default"
+                whileHover={{ scale: 1.08, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="flex flex-col items-center gap-2 group cursor-default"
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl glass p-2 flex items-center justify-center group-hover:border-cyan-500/25 transition-all duration-200">
-                  <Image src={logo.img} alt={logo.name} width={32} height={32} className="object-contain w-full h-full" unoptimized />
+                {/* Uniform card: fixed 56×56 with fixed inner icon area */}
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden
+                  bg-white/[0.04] border border-white/[0.08]
+                  group-hover:bg-white/[0.08] group-hover:border-cyan-500/30
+                  group-hover:shadow-[0_0_18px_rgba(0,245,255,0.12)]
+                  transition-all duration-250"
+                >
+                  {/* Fixed 28×28 inner area so all logos are same visible size */}
+                  <div className="w-7 h-7 flex items-center justify-center flex-shrink-0">
+                    <Image
+                      src={logo.img}
+                      alt={logo.name}
+                      width={28}
+                      height={28}
+                      className="object-contain"
+                      style={{ width: "28px", height: "28px" }}
+                      unoptimized
+                    />
+                  </div>
                 </div>
-                <span className="text-[9px] text-slate-500 group-hover:text-slate-300 transition-colors">{logo.name}</span>
+                <span className="text-[10px] font-medium text-slate-500 group-hover:text-slate-300 transition-colors tracking-wide">
+                  {logo.name}
+                </span>
               </motion.div>
             ))}
           </div>
 
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-5">
+            <div className="flex-1 h-px bg-white/[0.05]" />
+            <span className="text-[9px] text-slate-600 font-mono uppercase tracking-widest whitespace-nowrap">Also integrates with</span>
+            <div className="flex-1 h-px bg-white/[0.05]" />
+          </div>
+
+          {/* Integration pills */}
           <div className="flex flex-wrap justify-center gap-2">
             {integrations.map((b) => (
               <span key={b} className="tech-pill">{b}</span>

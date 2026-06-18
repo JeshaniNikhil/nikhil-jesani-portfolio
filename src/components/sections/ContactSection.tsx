@@ -102,7 +102,7 @@ export function ContactSection() {
 
               {/* Resume */}
               <a
-                href="/resume.pdf"
+                href="/resume/Nikhil_Jesani_AI_Automation.pdf"
                 download
                 className="flex items-center gap-3 p-3.5 rounded-xl border border-cyan-500/20 bg-cyan-500/5 hover:bg-cyan-500/10 transition-all group"
               >

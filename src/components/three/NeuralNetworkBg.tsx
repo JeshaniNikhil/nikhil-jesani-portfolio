@@ -1,214 +1,438 @@
 "use client";
 
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
-// ── Floating neural nodes ──────────────────────────────────────────────
-function FloatingNodes() {
-  const groupRef = useRef<THREE.Group>(null);
-  const count = 60;
+// ── DNA Double Helix Particle Stream ─────────────────────────────────────
+function DNAHelix() {
+  const groupRef = useRef<THREE.Points>(null);
+  const STRANDS = 2;
+  const PER_STRAND = 120;
+  const TOTAL = STRANDS * PER_STRAND;
 
-  const data = useMemo(() => {
-    return Array.from({ length: count }, (_, i) => ({
-      pos: new THREE.Vector3(
-        (Math.random() - 0.5) * 18,
-        (Math.random() - 0.5) * 12,
-        (Math.random() - 0.5) * 10,
-      ),
-      speed: 0.2 + Math.random() * 0.5,
-      phase: Math.random() * Math.PI * 2,
-      scale: 0.04 + Math.random() * 0.08,
-      isHub: i < 8, // larger central hubs
-    }));
+  const { positions, colors, phases } = useMemo(() => {
+    const positions = new Float32Array(TOTAL * 3);
+    const colors = new Float32Array(TOTAL * 3);
+    const phases = new Float32Array(TOTAL);
+
+    for (let s = 0; s < STRANDS; s++) {
+      const strandOffset = (s / STRANDS) * Math.PI * 2;
+      for (let i = 0; i < PER_STRAND; i++) {
+        const idx = (s * PER_STRAND + i) * 3;
+        const t = (i / PER_STRAND) * Math.PI * 6; // 3 full twists
+        const y = (i / PER_STRAND) * 16 - 8;
+        const r = 1.8;
+
+        positions[idx]     = Math.cos(t + strandOffset) * r;
+        positions[idx + 1] = y;
+        positions[idx + 2] = Math.sin(t + strandOffset) * r - 2;
+
+        phases[s * PER_STRAND + i] = t;
+
+        // Cyan → Purple color gradient along helix
+        const ratio = i / PER_STRAND;
+        if (s === 0) {
+          colors[idx]     = 0.0;
+          colors[idx + 1] = 0.96 - ratio * 0.4;
+          colors[idx + 2] = 1.0;
+        } else {
+          colors[idx]     = 0.66 + ratio * 0.2;
+          colors[idx + 1] = 0.33;
+          colors[idx + 2] = 0.97;
+        }
+      }
+    }
+    return { positions, colors, phases };
   }, []);
-
-  const posArray = useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    data.forEach((d, i) => {
-      arr[i * 3] = d.pos.x;
-      arr[i * 3 + 1] = d.pos.y;
-      arr[i * 3 + 2] = d.pos.z;
-    });
-    return arr;
-  }, [data]);
 
   const geo = useMemo(() => {
     const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.BufferAttribute(posArray.slice(), 3));
+    g.setAttribute("position", new THREE.BufferAttribute(positions.slice(), 3));
+    g.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     return g;
-  }, [posArray]);
+  }, [positions, colors]);
 
-  const lineGeo = useMemo(() => new THREE.BufferGeometry(), []);
-  const lineMat = useMemo(
+  // Cross-strand connection lines
+  const connGeo = useMemo(() => new THREE.BufferGeometry(), []);
+  const connMat = useMemo(
     () =>
       new THREE.LineBasicMaterial({
         vertexColors: true,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.18,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       }),
-    [],
+    []
   );
 
-  const mousePos = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const h = (e: MouseEvent) => {
-      mousePos.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mousePos.current.y = -((e.clientY / window.innerHeight) * 2 - 1);
-    };
-    window.addEventListener("mousemove", h);
-    return () => window.removeEventListener("mousemove", h);
-  }, []);
-
-  useFrame((state) => {
-    if (!groupRef.current) return;
-    const t = state.clock.elapsedTime;
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime * 0.45;
     const pa = geo.attributes.position.array as Float32Array;
-    const mx = mousePos.current.x * 4;
-    const my = mousePos.current.y * 3;
 
-    // Animate positions
-    data.forEach((d, i) => {
-      const ox = d.pos.x + Math.sin(t * d.speed + d.phase) * 0.8;
-      const oy = d.pos.y + Math.cos(t * d.speed * 0.7 + d.phase) * 0.5;
-      const oz = d.pos.z + Math.sin(t * 0.3 + d.phase) * 0.3;
+    // Animate helix flowing upward
+    for (let s = 0; s < STRANDS; s++) {
+      const strandOffset = (s / STRANDS) * Math.PI * 2;
+      for (let i = 0; i < PER_STRAND; i++) {
+        const idx = (s * PER_STRAND + i) * 3;
+        const angle = phases[s * PER_STRAND + i] + t;
+        const y = ((i / PER_STRAND + (t * 0.06) % 1.0)) * 16 - 8;
+        const r = 1.8 + Math.sin(angle * 2 + t) * 0.12;
 
-      // Mouse repulsion
-      const dx = mx - ox;
-      const dy = my - oy;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      const repulse = dist < 2.5 ? (1 - dist / 2.5) * 0.4 : 0;
-
-      pa[i * 3] = ox - dx * repulse;
-      pa[i * 3 + 1] = oy - dy * repulse;
-      pa[i * 3 + 2] = oz;
-    });
-    geo.attributes.position.needsUpdate = true;
-
-    // Build connection lines
-    const maxDist = 3.5;
-    const lines: number[] = [];
-    const colors: number[] = [];
-
-    for (let i = 0; i < count; i++) {
-      for (let j = i + 1; j < count; j++) {
-        const ax = pa[i * 3], ay = pa[i * 3 + 1], az = pa[i * 3 + 2];
-        const bx = pa[j * 3], by = pa[j * 3 + 1], bz = pa[j * 3 + 2];
-        const d = Math.sqrt((ax - bx) ** 2 + (ay - by) ** 2 + (az - bz) ** 2);
-        if (d < maxDist) {
-          const a = (1 - d / maxDist) * (data[i].isHub || data[j].isHub ? 1.5 : 1);
-          lines.push(ax, ay, az, bx, by, bz);
-          // cyan-to-purple gradient based on y
-          const t2 = (ay + 6) / 12;
-          colors.push(0, 0.94 * a, a,  0.66 * a, 0.33 * a, 0.97 * a);
-        }
+        pa[idx]     = Math.cos(angle + strandOffset) * r;
+        pa[idx + 1] = y;
+        pa[idx + 2] = Math.sin(angle + strandOffset) * r - 2;
       }
     }
+    geo.attributes.position.needsUpdate = true;
 
-    const lp = new Float32Array(lines);
-    const lc = new Float32Array(colors);
-    lineGeo.setAttribute("position", new THREE.BufferAttribute(lp, 3));
-    lineGeo.setAttribute("color", new THREE.BufferAttribute(lc, 3));
-    lineGeo.setDrawRange(0, lines.length / 3);
-    lineGeo.attributes.position.needsUpdate = true;
-    lineGeo.attributes.color?.needsUpdate && (lineGeo.attributes.color.needsUpdate = true);
+    // Build rung connections every ~6 particles
+    const rungs: number[] = [];
+    const rungColors: number[] = [];
+    for (let i = 0; i < PER_STRAND; i += 6) {
+      const a = i * 3;
+      const b = (PER_STRAND + i) * 3;
+      rungs.push(pa[a], pa[a + 1], pa[a + 2], pa[b], pa[b + 1], pa[b + 2]);
+      const glow = 0.5 + Math.sin(t * 3 + i * 0.3) * 0.5;
+      rungColors.push(0, glow, 1, 0.66, 0.33, glow);
+    }
+    connGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(rungs), 3));
+    connGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(rungColors), 3));
+    connGeo.setDrawRange(0, rungs.length / 3);
+    if (connGeo.attributes.position) connGeo.attributes.position.needsUpdate = true;
+    if (connGeo.attributes.color) connGeo.attributes.color.needsUpdate = true;
   });
 
   return (
-    <group ref={groupRef}>
-      {/* Particle dots */}
-      <points geometry={geo}>
+    <group position={[-3.5, 0, 0]} rotation={[0, 0.3, 0.08]}>
+      <points ref={groupRef} geometry={geo}>
         <pointsMaterial
-          size={0.09}
-          color="#00f5ff"
+          vertexColors
+          size={0.07}
           transparent
-          opacity={0.85}
+          opacity={0.9}
           sizeAttenuation
           blending={THREE.AdditiveBlending}
           depthWrite={false}
         />
       </points>
-
-      {/* Connection lines */}
-      <lineSegments geometry={lineGeo} material={lineMat} />
+      <lineSegments geometry={connGeo} material={connMat} />
     </group>
   );
 }
 
-// ── Orbiting rings ─────────────────────────────────────────────────────
-function OrbitalRings() {
-  const r1 = useRef<THREE.Mesh>(null);
-  const r2 = useRef<THREE.Mesh>(null);
-  const r3 = useRef<THREE.Mesh>(null);
+// ── Galaxy Particle Wave Field ────────────────────────────────────────────
+function ParticleField() {
+  const COUNT = 280;
+  const mouse = useRef({ x: 0, y: 0 });
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (r1.current) { r1.current.rotation.z = t * 0.12; r1.current.rotation.x = Math.PI / 4; }
-    if (r2.current) { r2.current.rotation.z = -t * 0.08; r2.current.rotation.y = t * 0.05; r2.current.rotation.x = Math.PI / 3; }
-    if (r3.current) { r3.current.rotation.y = t * 0.1; r3.current.rotation.z = Math.PI / 6; }
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const h = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.current.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    window.addEventListener("mousemove", h, { passive: true });
+    return () => window.removeEventListener("mousemove", h);
+  }, []);
+
+  const { geo, origins, speeds, phases } = useMemo(() => {
+    const positions = new Float32Array(COUNT * 3);
+    const colors = new Float32Array(COUNT * 3);
+    const origins = new Float32Array(COUNT * 3);
+    const speeds = new Float32Array(COUNT);
+    const phases = new Float32Array(COUNT);
+
+    for (let i = 0; i < COUNT; i++) {
+      // Distribute in a wide field with clustering
+      const ring = Math.random();
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 2 + ring * 9;
+      const x = Math.cos(angle) * radius;
+      const y = (Math.random() - 0.5) * 10;
+      const z = (Math.random() - 0.5) * 6 - 1;
+
+      positions[i * 3]     = origins[i * 3]     = x;
+      positions[i * 3 + 1] = origins[i * 3 + 1] = y;
+      positions[i * 3 + 2] = origins[i * 3 + 2] = z;
+
+      speeds[i] = 0.15 + Math.random() * 0.6;
+      phases[i] = Math.random() * Math.PI * 2;
+
+      // Color: 40% cyan, 40% purple, 20% pink
+      const r = Math.random();
+      if (r < 0.4) {
+        colors[i * 3] = 0.0; colors[i * 3 + 1] = 0.96; colors[i * 3 + 2] = 1.0;
+      } else if (r < 0.8) {
+        colors[i * 3] = 0.66; colors[i * 3 + 1] = 0.33; colors[i * 3 + 2] = 0.97;
+      } else {
+        colors[i * 3] = 0.93; colors[i * 3 + 1] = 0.28; colors[i * 3 + 2] = 0.6;
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    return { geo, origins, speeds, phases };
+  }, []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const pa = geo.attributes.position.array as Float32Array;
+    const mx = mouse.current.x * 5;
+    const my = mouse.current.y * 3.5;
+
+    for (let i = 0; i < COUNT; i++) {
+      const ox = origins[i * 3];
+      const oy = origins[i * 3 + 1];
+      const oz = origins[i * 3 + 2];
+
+      // Wave distortion
+      const wx = Math.sin(t * speeds[i] + phases[i]) * 0.6;
+      const wy = Math.cos(t * speeds[i] * 0.7 + phases[i] + ox * 0.2) * 0.5;
+
+      // Mouse attraction (gentle pull toward cursor)
+      const dx = mx - (ox + wx);
+      const dy = my - (oy + wy);
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const pull = dist < 3 ? (1 - dist / 3) * 0.25 : 0;
+
+      pa[i * 3]     = ox + wx + dx * pull;
+      pa[i * 3 + 1] = oy + wy + dy * pull;
+      pa[i * 3 + 2] = oz + Math.sin(t * 0.3 + phases[i]) * 0.2;
+    }
+    geo.attributes.position.needsUpdate = true;
   });
 
-  const ringMat = (color: string, opacity: number) => (
-    <meshBasicMaterial color={color} transparent opacity={opacity} side={THREE.DoubleSide} />
+  return (
+    <points geometry={geo}>
+      <pointsMaterial
+        vertexColors
+        size={0.055}
+        transparent
+        opacity={0.75}
+        sizeAttenuation
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
   );
+}
+
+// ── Flowing Energy Lines (data streams) ──────────────────────────────────
+function DataStreams() {
+  const STREAMS = 8;
+  const PTS = 40;
+
+  const streamData = useMemo(() => {
+    return Array.from({ length: STREAMS }, (_, s) => {
+      const startX = (Math.random() - 0.5) * 16;
+      const startY = (Math.random() - 0.5) * 10;
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.2 + Math.random() * 0.4;
+      const color = s % 3 === 0
+        ? new THREE.Color(0, 0.96, 1)
+        : s % 3 === 1
+        ? new THREE.Color(0.66, 0.33, 0.97)
+        : new THREE.Color(0.93, 0.28, 0.6);
+      return { startX, startY, angle, speed, color };
+    });
+  }, []);
+
+  const geos = useMemo(() =>
+    streamData.map(() => new THREE.BufferGeometry()), [streamData]);
+
+  const mats = useMemo(() =>
+    streamData.map((s) =>
+      new THREE.LineBasicMaterial({
+        color: s.color,
+        transparent: true,
+        opacity: 0.22,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    ), [streamData]);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    streamData.forEach((s, si) => {
+      const pts: number[] = [];
+      for (let i = 0; i < PTS; i++) {
+        const frac = i / PTS;
+        const offset = t * s.speed + si * 1.3;
+        const x = s.startX + Math.cos(s.angle + frac * Math.PI * 3 + offset) * (2 + frac * 3);
+        const y = s.startY + frac * 8 - 4 + Math.sin(offset * 0.5 + frac * Math.PI * 2) * 0.8;
+        const z = Math.sin(frac * Math.PI + offset * 0.3) * 1.5 - 1;
+        pts.push(x, y, z);
+      }
+      geos[si].setAttribute("position", new THREE.BufferAttribute(new Float32Array(pts), 3));
+      if (geos[si].attributes.position) geos[si].attributes.position.needsUpdate = true;
+    });
+  });
 
   return (
     <>
-      <mesh ref={r1}>
-        <torusGeometry args={[4.5, 0.012, 8, 128]} />
-        {ringMat("#00f5ff", 0.15)}
-      </mesh>
-      <mesh ref={r2}>
-        <torusGeometry args={[6.5, 0.008, 8, 128]} />
-        {ringMat("#a855f7", 0.1)}
-      </mesh>
-      <mesh ref={r3}>
-        <torusGeometry args={[8.5, 0.006, 8, 128]} />
-        {ringMat("#ec4899", 0.07)}
-      </mesh>
+      {geos.map((geo, i) => (
+        <line key={i} geometry={geo} material={mats[i]} />
+      ))}
     </>
   );
 }
 
-// ── Central glowing orb ────────────────────────────────────────────────
-function CentralOrb() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
+// ── Floating Geometric Data Glyphs ────────────────────────────────────────
+function DataGlyphs() {
+  const GLYPHS = 7;
+  const refs = useRef<(THREE.Mesh | null)[]>([]);
 
-  useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    if (meshRef.current) {
-      meshRef.current.scale.setScalar(1 + Math.sin(t * 1.2) * 0.05);
+  const glyphData = useMemo(() =>
+    Array.from({ length: GLYPHS }, (_, i) => ({
+      pos: new THREE.Vector3(
+        (Math.random() - 0.5) * 14,
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 4 - 2,
+      ),
+      rotSpeed: (Math.random() - 0.5) * 0.8,
+      floatPhase: Math.random() * Math.PI * 2,
+      scale: 0.12 + Math.random() * 0.22,
+      colorIdx: i % 3,
+    })), []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      const d = glyphData[i];
+      mesh.rotation.x = t * d.rotSpeed * 0.7;
+      mesh.rotation.y = t * d.rotSpeed;
+      mesh.rotation.z = t * d.rotSpeed * 0.4;
+      mesh.position.y = d.pos.y + Math.sin(t * 0.4 + d.floatPhase) * 0.5;
+    });
+  });
+
+  const colors = ["#00f5ff", "#a855f7", "#ec4899"];
+
+  return (
+    <>
+      {glyphData.map((d, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { refs.current[i] = el; }}
+          position={[d.pos.x, d.pos.y, d.pos.z]}
+          scale={d.scale}
+        >
+          {i % 2 === 0
+            ? <icosahedronGeometry args={[1, 0]} />
+            : <octahedronGeometry args={[1, 0]} />}
+          <meshBasicMaterial
+            color={colors[d.colorIdx]}
+            transparent
+            opacity={0.12}
+            wireframe
+          />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+// ── Central Pulsing Energy Core ───────────────────────────────────────────
+function EnergyCore() {
+  const outer = useRef<THREE.Mesh>(null);
+  const inner = useRef<THREE.Mesh>(null);
+  const halo  = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    const pulse = 1 + Math.sin(t * 1.8) * 0.08;
+    if (outer.current) {
+      outer.current.scale.setScalar(pulse);
+      outer.current.rotation.y = t * 0.3;
+      outer.current.rotation.z = t * 0.15;
     }
-    if (lightRef.current) {
-      lightRef.current.intensity = 0.8 + Math.sin(t * 2) * 0.3;
+    if (inner.current) {
+      inner.current.scale.setScalar(1 + Math.sin(t * 3.2) * 0.15);
+    }
+    if (halo.current) {
+      halo.current.scale.setScalar(1 + Math.sin(t * 0.9 + 1) * 0.04);
+      (halo.current.material as THREE.MeshBasicMaterial).opacity =
+        0.04 + Math.sin(t * 1.5) * 0.025;
     }
   });
 
   return (
-    <>
-      <pointLight ref={lightRef} color="#00f5ff" intensity={0.8} distance={12} />
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[0.4, 32, 32]} />
-        <meshBasicMaterial color="#00f5ff" transparent opacity={0.3} />
+    <group position={[2.5, 0, -1]}>
+      {/* Outer wireframe sphere */}
+      <mesh ref={outer}>
+        <icosahedronGeometry args={[1.1, 1]} />
+        <meshBasicMaterial color="#00f5ff" transparent opacity={0.07} wireframe />
       </mesh>
-      {/* Inner bright core */}
+      {/* Inner glowing core */}
+      <mesh ref={inner}>
+        <sphereGeometry args={[0.28, 16, 16]} />
+        <meshBasicMaterial color="#00f5ff" transparent opacity={0.45} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      {/* Bright center */}
       <mesh>
-        <sphereGeometry args={[0.18, 16, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.6} />
+        <sphereGeometry args={[0.1, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
+      {/* Large halo ring */}
+      <mesh ref={halo}>
+        <torusGeometry args={[2.2, 0.008, 6, 200]} />
+        <meshBasicMaterial color="#00f5ff" transparent opacity={0.08} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      <pointLight color="#00f5ff" intensity={1.2} distance={10} />
+    </group>
+  );
+}
+
+// ── Orbital Halos ─────────────────────────────────────────────────────────
+function OrbitalHalos() {
+  const refs = useRef<(THREE.Mesh | null)[]>([]);
+
+  const rings = useMemo(() => [
+    { r: 5.5, tube: 0.009, color: "#00f5ff", opacity: 0.11, rx: Math.PI / 4,  rz: 0,            speed:  0.09 },
+    { r: 7.5, tube: 0.006, color: "#a855f7", opacity: 0.08, rx: Math.PI / 3,  rz: Math.PI / 5,  speed: -0.06 },
+    { r: 10,  tube: 0.004, color: "#ec4899", opacity: 0.05, rx: Math.PI / 5,  rz: -Math.PI / 4, speed:  0.04 },
+    { r: 3.8, tube: 0.01,  color: "#a855f7", opacity: 0.09, rx: -Math.PI / 3, rz: Math.PI / 6,  speed: -0.12 },
+  ], []);
+
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    refs.current.forEach((mesh, i) => {
+      if (!mesh) return;
+      mesh.rotation.z = rings[i].speed * t;
+      mesh.rotation.y = t * rings[i].speed * 0.4;
+    });
+  });
+
+  return (
+    <>
+      {rings.map((ring, i) => (
+        <mesh
+          key={i}
+          ref={(el) => { refs.current[i] = el; }}
+          rotation={[ring.rx, 0, ring.rz]}
+        >
+          <torusGeometry args={[ring.r, ring.tube, 6, 180]} />
+          <meshBasicMaterial
+            color={ring.color}
+            transparent
+            opacity={ring.opacity}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
     </>
   );
 }
 
-// ── Camera parallax on mouse ───────────────────────────────────────────
+// ── Camera parallax ───────────────────────────────────────────────────────
 function CameraRig() {
   const { camera } = useThree();
-  const mouse = useRef({ x: 0, y: 0 });
+  const mouse  = useRef({ x: 0, y: 0 });
   const target = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -217,13 +441,13 @@ function CameraRig() {
       mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
       mouse.current.y = (e.clientY / window.innerHeight - 0.5) * 2;
     };
-    window.addEventListener("mousemove", h);
+    window.addEventListener("mousemove", h, { passive: true });
     return () => window.removeEventListener("mousemove", h);
   }, []);
 
   useFrame(() => {
-    target.current.x += (mouse.current.x * 1.2 - target.current.x) * 0.04;
-    target.current.y += (-mouse.current.y * 0.8 - target.current.y) * 0.04;
+    target.current.x += (mouse.current.x * 0.8 - target.current.x) * 0.035;
+    target.current.y += (-mouse.current.y * 0.5 - target.current.y) * 0.035;
     camera.position.x = target.current.x;
     camera.position.y = target.current.y;
     camera.lookAt(0, 0, 0);
@@ -232,23 +456,29 @@ function CameraRig() {
   return null;
 }
 
+// ── Main Export ───────────────────────────────────────────────────────────
 export function NeuralNetworkBg() {
   return (
     <div className="absolute inset-0 z-0 pointer-events-none">
       <Canvas
-        camera={{ position: [0, 0, 9], fov: 55 }}
+        camera={{ position: [0, 0, 11], fov: 52 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: true }}
       >
         <CameraRig />
-        <FloatingNodes />
-        <OrbitalRings />
-        <CentralOrb />
+        <ParticleField />
+        <DNAHelix />
+        <DataStreams />
+        <DataGlyphs />
+        <EnergyCore />
+        <OrbitalHalos />
       </Canvas>
 
       {/* Vignette overlays */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#030014]/70 via-transparent to-[#030014]/80 pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#030014]/60 via-transparent to-[#030014]/60 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#030014]/75 via-transparent to-[#030014]/85 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#030014]/65 via-transparent to-[#030014]/55 pointer-events-none" />
+      {/* Bottom fade to blend with next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#030014] to-transparent pointer-events-none" />
     </div>
   );
 }

@@ -16,7 +16,7 @@
   --pink:     #ec4899;
   --green:    #10b981;
   --bg:       #030014;
-  --nav-h:    64px;  /* navbar height — used for pt on first section */
+  --nav-h:    72px;  /* navbar height — used for pt on first section */
 
   /* Consistent horizontal padding per breakpoint */
   --px-xs:  1.25rem;   /* 20px  – mobile          */
@@ -32,7 +32,7 @@
 /* ─────────────────────────────────────────────
    RESET
 ───────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; padding: 0; }
 
 html {
   background: var(--bg);
